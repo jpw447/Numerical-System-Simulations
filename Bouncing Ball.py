@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+import time
 
 def bouncing_ball(t, y, coeff_rest, g):
     if y[0] < 0:
@@ -17,8 +18,11 @@ initial_conditions = [0, 50]
 tf = 100
 tvals = np.linspace(0, tf, 1024)
 
+start = time.time()
 sol = solve_ivp(bouncing_ball, [0, tf], initial_conditions, t_eval=tvals, 
                 args=(coeff_rest, g))
+duration = time.time() - start
+print("Solution took {:.3f} seconds to calculate".format(duration))
 
 plt.plot(sol.t, sol.y[0])
 

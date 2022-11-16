@@ -13,7 +13,7 @@ Larger accelerations can cause the solver to take longer to run (compare g=0.5 t
 '''
 #%%
 import numpy as np
-import matplotlit.pyplot as plt
+import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 import time
 
@@ -29,8 +29,8 @@ coeff_rest = 0.8
 
 # In order [y(0), ydot(0)]
 initial_conditions = [0, 50]
-tf = 100
-tvals = np.linspace(0, tf, 1024)
+tf = 20
+tvals = np.linspace(0, tf, 64)
 
 start = time.time()
 sol = solve_ivp(bouncing_ball, [0, tf], initial_conditions, t_eval=tvals, 
@@ -42,62 +42,45 @@ plt.plot(sol.t, sol.y[0])
 
 #%%
 # https://scipython.com/blog/chaotic-balls/
-# Acceleration due to gravity, m.s-2 (downwards!).
-g = 9.81
-# Time step, s.
-dt = 0.001
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
 
-def solve(u0):
-    """Solve the equation of motion for a ball bouncing in a circle.
+def bouncing_ball(t, y, g):
+    return [y[1], g]
 
-    u0 = [x0, vx0, y0, vy0] are the initial conditions (position and velocity).
+def event(t, y, g):
+    return y[0]
+event.terminal = True
+event.terminal = -1
 
-    """
+g = -9.81
 
-    # Initial time, final time, s.
-    t0, tf = 0, 10
+# In order [y(0), ydot(0)]
+initial_conditions = [0.1, 50]
+tf = 20
+tvals = np.linspace(0, tf, 64)
 
-    def fun(t, u):
-        """Return the derivatives of the dynamics variables packed into u."""
-        y, ydot = u
-        yddot = -g
-        return ydot, yddot
+sol = solve_ivp(bouncing_ball, [0, tf], initial_conditions, 
+                events=event, args=(g,), dense_output=True)
 
-    def event(t, u):
-        """If the ball hits the wall of the circle, trigger the event."""
-        return u[0]
-    # Make sure the event terminates the integration.
-    event.terminal = True
+# Solves the system for the provided tvals, regardless of events
+soln = sol.sol(tvals)
+fig1, ax1 = plt.subplots(figsize=(8,6))
+ax1.plot(tvals, soln[0])
+ax1.set_title("Solution from $t_{0}$ to $t_{f}$, ignoring events", fontsize=16)
 
-    # Keep track of the ball's position in these lists.
-    y = []
-    t = []
-    while True:
-        # Solve the equations until the ball hits the floor or until tf
-        soln = solve_ivp(fun, (t0, tf), u0, events=event, dense_output=True)
-        if soln.status == 1:
-            # We hit the wall: save the path so far...
-            tend = soln.t_events[0][0]
-            # nt = int(tend - t0 / dt) + 1
-            tgrid = np.linspace(t0, tend, 100)
-            sol = soln.sol(tgrid)
-            y.append(sol[0])
-            t.append(tgrid)
+# Solves the system, including events
+tvals = np.linspace(0, sol.t[-1], 100)
+soln = sol.sol(tvals)
+fig2, ax2 = plt.subplots(figsize=(8,6))
+ax2.plot(sol.t, sol.y[0], "k", label="Scipy sol object")
+ax2.plot(tvals, soln[0], "r", label="Solved for $t_{0} \\rightarrow t_{event}$")
+ax2.set_title("Solution from $t_{0}$ to $t_{event}$", fontsize=16)
+ax2.legend(fontsize=16)
 
-            # ...and restart the integration with the reflected velocities as
-            # the initial conditions.
-            u0 = soln.y[0][-1], -1*soln.y[1][-1]
-            t0 = soln.t[-1]
-        else:
-            # We're done up to tf (or, rather, the last bounce before tf).
-            break
-    # Concatenate all the paths between bounces together.
-    return np.concatenate(y), np.concatenate(t)
-    
-u0 = [10, 0]
-y, t = solve(u0)
-    
-    
-    
-    
+#%%
+# Multiple bounces using events
+
+def bouncing_ball(t, y, g):
     

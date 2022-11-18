@@ -96,15 +96,15 @@ def bouncing_ball(t, y, g):
     return [y[1], g]
 
 def event(t, y, g):
-    return y[0]
+    return 100-y[0]
 event.terminal = True
 event.direction = -1
 
 # Parameters
 initial_conditions = [0.1, 50]
 t0 = 0
-tf = 200
-g = -9.81
+tf = 50
+g = 9.81
 coeff_rest = 0.9
 
 # Lists for the solution 

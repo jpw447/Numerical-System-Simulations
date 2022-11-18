@@ -1,62 +1,74 @@
 '''
 Code to simulate a particle moving in free space, constrained to be within
-a box
+a box.
+
+soln.t_events returns a 2D array. The first element returns the event that fired,
+in the same order they were provided to solve_ivp
+The second element is the time at which it was fired
 '''
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-def free_particle(t, y):
-    return [y[1], 0, y[3], 0]
+def free_particle(t, y, thickness):
+    return [y[1], 0]
 
-def vertical_impact(t, y):
-    return 1-y[0]
-vertical_impact.terminal = True
+def right_wall(t, y, thickness):
+    return thickness-y[0]
 
-def horizontal_impact(t, y):
-    return 1-y[2]
-horizontal_impact.terminal=True
+def left_wall(t, y, thickness):
+    return -thickness-y[0]
+right_wall.terminal = True
+left_wall.terminal = True
 
-# [x, xdot, y, ydot]
-initial_conditions = [0, 1, 0, 0.5]
+# [x, xdot]
+initial_conditions = [0, 1]
 t0 = 0
-tf = 2
+tf = 10
 x = []
-y = []
 t = []
+thickness = 1
 
 '''
 Issues:
-    How do we check which event fired, and which velocity to invert?
-    Takes forever to solve for non-zero vy.
-        Maybe try to start more simply and have a floor+ceiling to bounce the
-        ball?
 '''
+for i in range(100):
+    soln = solve_ivp(free_particle, [t0, tf], initial_conditions, args=(thickness,),
+                     events=(right_wall, left_wall), dense_output=True)
+    t_impact = soln.t_events[0]
+    
+    # Calculating solution up until end of integration (bounce or tf)  
+    t_end = soln.t[-1]
+    
+    num_timesteps = 2048
+    tvals = np.linspace(t0, t_end, num_timesteps)
+    
+    new_sol = soln.sol(tvals)
+    x_impact = new_sol[0][-1]
 
-while True:
-    sol = solve_ivp(free_particle, [t0, tf], initial_conditions, 
-                events=(vertical_impact, horizontal_impact), dense_output=True)
-    t_end = sol.t[-1]
-    tvals = np.linspace(0, t_end, 1024)
-    
-    new_soln = sol.sol(tvals)
-    x.append(new_soln[0])
-    y.append(new_soln[2])
+    x.append(new_sol[0])
     t.append(tvals)
-    
-    # If integration was interrupted
-    if sol.status == 1:
+    print("Impact x="+str(new_sol[0][-1]))
+        
+    if soln.status == 1:
+        '''If a bounce occurred, make new initial conditions and range
+        of t for repeat. Need if statement to kick ball away from the wall to 
+        prevent it getting stuck.'''
+        vx = new_sol[1][-1]
+        if vx > 0:
+            bump = -1e-10
+        else:
+            bump = 1e-10
+        initial_conditions = (new_sol[0][-1] + bump, -new_sol[1][-1])
         t0 = t_end
-        new_x = new_soln[0][-1]
-        new_vx = new_soln[1][-1]
-        new_y = new_soln[2][-1]
-        new_vy = new_soln[3][-1]
-        initial_conditions = [new_x, -new_vx, new_y, new_vy]
     else:
+        # When we reach tf, break loop
         break
 
 x = np.concatenate(x)
-y = np.concatenate(y)
 t = np.concatenate(t)
-plt.plot(x, y)
+fig, ax = plt.subplots()
+ax.plot(x, t)
+ax.set_xlabel("$x$", fontsize=16)
+ax.set_ylabel("$t$", fontsize=16)

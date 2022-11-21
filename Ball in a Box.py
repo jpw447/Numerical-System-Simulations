@@ -193,7 +193,7 @@ ax.plot(0, 0, "ko", markersize=2)
 for val in [-1, 1]:
     ax.hlines(val, -1, 1, colors="k")
     ax.vlines(val, -1, 1, colors="k")
-ax.set_xlim(-1.1, 1.1)s
+ax.set_xlim(-1.1, 1.1)
 ax.set_ylim(-1.1, 1.1)
 ax.set_xlabel("$x$", fontsize=16)
 ax.set_ylabel("$y$", fontsize=16)

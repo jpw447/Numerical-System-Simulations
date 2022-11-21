@@ -15,11 +15,27 @@ def free_particle(t, y):
 # def left_wall(t, y, size):
 #     return -size-y[0]
 
-# def ceiling(t, y, size):
-#     return size-y[2]
+# def ceiling_1(t, y, size):
+#     return size-y[0]
 
 # def floor(t, y, size):
 #     return -size-y[2]
+
+def wall_left_1(t, y):
+    return -2-y[0]
+wall_left_1.terminal = True
+
+def wall_right_1(t, y):
+    return 2-y[0]
+wall_right_1.terminal = True
+
+def wall_left_2(t, y):
+    return -2-y[2]
+wall_left_2.terminal = True
+
+def wall_right_2(t,y):
+    return 2-y[2]
+wall_right_2.terminal = True
 
 def collision(t, y):
     return y[0] - y[2]
@@ -34,16 +50,19 @@ initial_conditions = [0, 1, 1, -1]
 # reshape it for calculations?
                   
 t0 = 0
-tf = 1
+tf = 100
 x1 = []
 x2 = []
 t = []
 size = 1
+coeff = 1 # coefficient of restitution for wall collisions
 
 
 while True:
     soln = solve_ivp(free_particle, [t0, tf], initial_conditions,
-                     events=collision, dense_output=True)
+                     events=(collision, wall_left_1, wall_right_1, wall_left_2,
+                             wall_right_2),
+                     dense_output=True)
     
     # Calculating solution up until end of integration (bounce or tf)  
     t_end = soln.t[-1]
@@ -74,9 +93,23 @@ while True:
             bump_x2 = -1e-10
         else:
             bump_x2 = 1e-10
-        
+            
+        # Checking positions on wall collision
+        if np.round(x1_impact,6) == 2:
+            bump_x1 = -1e-10
+            vx1 = -coeff*vx1
+        elif np.round(x1_impact, 6) == -2:
+            bump_x1 = 1e-10
+            vx1 = -coeff*vx1
+            
+        if np.round(x2_impact,6) == 2:
+            bump_x2 = -1e-10
+            vx2 = -coeff*vx2
+        elif np.round(x2_impact, 6) == -2:
+            bump_x2 = 1e-10
+            vx2 = -coeff*vx2
+            
         # Checking which velocity needs inverting by manually checking collision
-        print(np.round(x1_impact-x2_impact,6))
         if abs(np.round(x1_impact-x2_impact, 6)) == 0:
             vx1 = -vx1
             vx2 = -vx2
@@ -97,4 +130,4 @@ fig, ax = plt.subplots()
 ax.plot(x1, t, "r")
 ax.plot(x2, t, "k")
 ax.set_xlabel("$x$", fontsize=16)
-ax.set_ylabel("$y$", fontsize=16)
+ax.set_ylabel("$t$", fontsize=16)

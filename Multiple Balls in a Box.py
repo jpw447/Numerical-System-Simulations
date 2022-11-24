@@ -200,6 +200,7 @@ for val in [-2, 2]:
 ax_box.set_xlabel("$x$", fontsize=16)
 ax_box.set_ylabel("$y$", fontsize=16)
 ax_box.set_title("Multiple Particles within a Box", fontsize=20)
+ax_box.set_aspect("equal")
 ax_box.legend(fontsize=12)
 
 fig_world, ax_world = plt.subplots()

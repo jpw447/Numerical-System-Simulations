@@ -2,47 +2,56 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
+'''
+Will need to include the star as well. Refer to "Old N-Body.py" for the old
+2-body solution from the SciComp project
+'''
 
-def newtonian_gravity(t, y, constants):
+def field_func(t, y, const):
     x, vx, y, vy = y
-    G, M = constants
-    prefactor = G*M
-    r = (x**2 + y**2)**0.5
-    
+    G, M = const
+    r3 = (x**2 + y**2)**1.5
+
     xdot = vx
-    xddot = -prefactor*x/r**3
+    xddot = -G*M*x/(r3)
     ydot = vy
-    yddot = -prefactor*y/r**3
+    yddot = -G*M*y/(r3)
+
     return [xdot, xddot, ydot, yddot]
 
-M_sun = 2e30
+
 G = 6.67e-11
-AU = 1.4959e11
-
-
+M_sun = 1.989e30
+M_earth = 5.972e24
+AU = 1.5e11
 vy_init = np.sqrt(G*M_sun/AU)
+
+t0 = 0
+tf = 365*24*60**2
+
 ic = [AU, 0, 0, vy_init]
 
-num_orbits = 4
-t0 = 0
-tf = 24*365*60*60 * num_orbits
+soln = solve_ivp(field_func, [t0, tf], ic, args=([G, M_sun],), dense_output=True)
 
-sol = solve_ivp(newtonian_gravity, [t0, tf], ic, args=([G, M_sun],), dense_output=True)
-tvals = np.linspace(0, tf, 2048)
-soln = sol.sol(tvals)
-x = soln[0]
-vx = soln[1]
-y = soln[2]
-vy = soln[3]
+tvals = np.linspace(t0, tf, 1024)
+sol = soln.sol(tvals)
 
-plt.figure()
-plt.plot(x, y)
+x = sol[0]
+vx = sol[1]
+y = sol[2]
+vy = sol[3]
 
-KE = 0.5*(vx*vx+vy*vy)
-plt.figure()
-plt.plot(tvals, KE)
+KE = 0.5*(vx*vx + vy*vy)
+PE = -G*M_sun*M_earth/(x*x + y*y)**0.5
+E = KE + PE
 
-'''
-Issues:
-    Energy is not conserved. Check differential equations/rewrite
-'''
+fig, ax = plt.subplots(1, 2, figsize=(10, 6))
+
+ax[0].plot(x, y)
+ax[0].set_xlabel("$x$", fontsize=16)
+ax[0].set_ylabel("$y$", fontsize=16)
+ax[1].plot(tvals, KE, "g", label="KE")
+ax[1].plot(tvals, PE, "r", label="PE")
+ax[1].set_xlabel("$t$", fontsize=16)
+ax[1].set_ylabel("Kinetic Energy", fontsize=16)
+ax[1].legend(fontsize=12)

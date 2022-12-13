@@ -29,8 +29,8 @@ if __name__ == "__main__":
     vy_planet_init = np.sqrt(G*M_star/separation)
     
     # Time array
-    year_constant = 60**2 * 24 * 365.35
-    number_of_years = 5
+    year_constant = 60**2 * 24 * 365.25
+    number_of_years = 1
     t_max = number_of_years * year_constant
     t_array = np.linspace(0, t_max, 1000)
     # Lists containin intial conditions (parameters) and important constants.

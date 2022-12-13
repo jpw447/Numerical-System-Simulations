@@ -5,14 +5,11 @@ from scipy.integrate import odeint
 
 '''
 Issues:
-    odeint and solve_ivp provide the same solution, which is fine. However,
-    they both don't conserve energy and see the planets spiralling inward
-    
-    Troubleshooting idea is to calculate the solution this way, then paste in 
-    the code from Old N-Body.py and then plot each variable from each solution
-    against each other
-    
-    This will demonstrate what's going wrong
+    odeint and solve_ivp provide the same, correct solution. Solve_ivp doesn't
+    provide the correct solution for the RK45 method. However, odeint is marginally
+    faster:
+        odeint - 5.55 ms ± 23.6 µs
+        RK23 - 13.3 ms ± 296 µs
 '''
 
 

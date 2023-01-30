@@ -8,9 +8,6 @@ change is shown in the third plot.
 
 When the radius returns to its initial value, the radial velocity also
 returns to its initial value.
-
-The current issue is that the angle is always positive, which is a consequence
-of the radial velocity not having any direction encoded into its value.
 '''
 
 
@@ -37,7 +34,7 @@ if __name__ == "__main__":
     m = 1  # Mass
     k = 1  # Spring constant
     L = 1  # Natural spring length
-    r_init = 1.5
+    r_init = 1.1
     E_init = 2*np.pi**2  # Chosen to make initial omega = 2pi
     w_init = np.sqrt(2*E_init/(m*r_init**2))
     v_t_init = w_init*r_init
@@ -64,6 +61,11 @@ if __name__ == "__main__":
 
     # Finding angle theta by integrating omega
     theta = cumtrapz(w, tvals, initial=0)
+
+    # Translating values to fit within -pi<theta<pi
+    max_half_rotations = np.max(theta)/np.pi
+    for i in range(int(np.ceil(max_half_rotations))+1):
+        theta = np.where(theta >= np.pi, theta-2*np.pi, theta)
 
     # Polar projection of trajectory
     fig_pol, ax_pol = plt.subplots(subplot_kw={'projection': 'polar'})

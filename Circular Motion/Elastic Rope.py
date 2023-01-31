@@ -33,7 +33,7 @@ if __name__ == "__main__":
     m = 1  # Mass
     k = 1  # Spring constant
     L = 1  # Natural spring length
-    r_init = 2
+    r_init = 1.5
     E_init = 2*np.pi**2  # Chosen to make initial omega = 2pi
     w_init = np.sqrt(2*E_init/(m*r_init**2))
     v_t_init = w_init*r_init
